@@ -16,8 +16,10 @@ services:
             - ./.docker/app/php-fpm.ini:/usr/local/etc/php/conf.d/99-app.ini
         depends_on:
             - database
+            - rabbitmq
         links:
             - database
+            - rabbitmq
         networks:
             - network
     nginx:
@@ -69,32 +71,26 @@ services:
             - network
     rabbitmq:
         image: rabbitmq:latest
+        container_name: rabbitmq
+        restart: unless-stopped
+        ports:
+            - "5672:5672"
         environment:
             RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-            RABBITMQ_DEFAULT_PASSWORD: ${RABBITMQ_PASSWORD}
-            RABBITMQ_DEFAULT_VHOST: /
-            RABBITMQ_SSL_CACERTFILE: /rootCA.pem
-            RABBITMQ_SSL_CERTFILE: /rootCA.pem
-            RABBITMQ_SSL_KEYFILE: /rootCA.key
-            RABBITMQ_SSL_VERIFY: verify_none
-            RABBITMQ_SSL_FAIL_IF_NO_PEER_CERT: "false"
-        ports:
-            - "${RABBITMQ_PORT}:5672"
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+            RABBITMQ_DEFAULT_VHOST: '/'
         networks:
             - network
-    rabbitmq-management:
+    rabbitmq_management:
         image: rabbitmq:management
-        environment:
-            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-            RABBITMQ_DEFAULT_PASSWORD: ${RABBITMQ_PASSWORD}
-            RABBITMQ_DEFAULT_VHOST: /
-            RABBITMQ_MANAGEMENT_SSL_CACERTFILE: /rootCA.pem
-            RABBITMQ_MANAGEMENT_SSL_CERTFILE: /rootCA.pem
-            RABBITMQ_MANAGEMENT_SSL_KEYFILE: /rootCA.key
-            RABBITMQ_MANAGEMENT_SSL_VERIFY: verify_none
-            RABBITMQ_MANAGEMENT_SSL_FAIL_IF_NO_PEER_CERT: "false"
+        container_name: rabbitmq-management
+        restart: unless-stopped
         ports:
             - "15672:15672"
+        environment:
+            RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+            RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+            RABBITMQ_DEFAULT_VHOST: '/'
         networks:
             - network
 
